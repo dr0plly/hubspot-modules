@@ -4,15 +4,12 @@ import requests
 from dotenv import load_dotenv
 load_dotenv()
 
-language = "th"
-
-
 # Configuration
-
+language = "th"
 HUBSPOT_API_KEY = os.getenv("HUBSPOT_API_KEY") or os.getenv("HUBSPOT_PRIVATE_APP_TOKEN")
 PAGE_ID = os.getenv("PAGE_ID")
 
-TARGET_SUFFIX = os.getenv(f"TARGET_LANG_SUFFIX", "{language}").strip()
+TARGET_SUFFIX = os.getenv("TARGET_LANG_SUFFIX", f"{language}").strip()
 
 # Path to your translated JSON file
 script_dir = os.path.dirname(os.path.abspath(__file__))
