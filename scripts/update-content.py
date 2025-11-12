@@ -1,30 +1,29 @@
 import os
 import json
 import requests
-import re
 from dotenv import load_dotenv
 load_dotenv()
 
 language = "th"
 
-# -----------------------------
-# 🔑 Configuration
-# -----------------------------
+
+# Configuration
+
 HUBSPOT_API_KEY = os.getenv("HUBSPOT_API_KEY") or os.getenv("HUBSPOT_PRIVATE_APP_TOKEN")
 PAGE_ID = os.getenv("PAGE_ID")
 
 TARGET_SUFFIX = os.getenv(f"TARGET_LANG_SUFFIX", "{language}").strip()
 
-# Path to your translated JSON file (preference order)
+# Path to your translated JSON file
 script_dir = os.path.dirname(os.path.abspath(__file__))
 translated_env = os.getenv("TRANSLATED_JSON")
 default_translated = os.path.join(script_dir, f"hubspot_translated_{TARGET_SUFFIX}.json")
 fallback = os.path.join(script_dir, "hubspot_translatable_content.json")
 json_path = translated_env or (default_translated if os.path.exists(default_translated) else fallback)
 
-# -----------------------------
-# 📂 Load JSON
-# -----------------------------
+
+# Load JSON
+
 if not os.path.exists(json_path):
     print(f"❌ Translation JSON not found at: {json_path}")
     exit(1)
@@ -39,9 +38,9 @@ translations = {k[:-suffix_len]: v for k, v in data.items() if k.endswith(suffix
 print(f"✅ Using translation file: {json_path}")
 print(f"✅ Found {len(translations)} translations (suffix='{suffix}').\n")
 
-# -----------------------------
+
 # 📡 Get existing HubSpot page
-# -----------------------------
+
 page_url = f"https://api.hubapi.com/cms/v3/pages/site-pages/{PAGE_ID}"
 headers = {"Authorization": f"Bearer {HUBSPOT_API_KEY}", "Content-Type": "application/json"}
 
@@ -53,9 +52,9 @@ if response.status_code != 200:
 page_data = response.json()
 print(f"✅ Page fetched successfully (ID: {page_data.get('id')})")
 
-# -----------------------------
-# 🧠 Helper: update nested key
-# -----------------------------
+
+# Helper: update nested key
+
 def update_nested_field(data_obj, key_path, new_value):
     """Walk through nested dict using dot notation path and update the value."""
     parts = key_path.split(".")
@@ -80,9 +79,9 @@ def update_nested_field(data_obj, key_path, new_value):
     except (KeyError, IndexError, TypeError):
         return False
 
-# -----------------------------
-# 🔁 Apply translations
-# -----------------------------
+
+# Apply translations
+
 updated = 0
 not_found = []
 for key, translated_text in translations.items():
@@ -117,12 +116,9 @@ def clean_hubspot_payload(data):
             del data[field]
     return data
 
-# -----------------------------
-# 🚀 Push updated content back
-# -----------------------------
-# -----------------------------
+
 # Backup original page JSON before patching
-# -----------------------------
+
 from datetime import datetime
 
 timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
@@ -130,7 +126,7 @@ backup_path = os.path.join(script_dir, f"hubspot_page_backup_{PAGE_ID}_{timestam
 with open(backup_path, "w", encoding="utf-8") as bf:
     json.dump(page_data, bf, ensure_ascii=False, indent=2)
 
-print(f"💾 Backup of current page saved to: {backup_path}")
+print(f"Backup of current page saved to: {backup_path}")
 
 # Clean the payload before sending
 page_data_cleaned = clean_hubspot_payload(json.loads(json.dumps(page_data)))

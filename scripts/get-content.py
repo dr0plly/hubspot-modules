@@ -1,19 +1,19 @@
 import requests
 import json
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
 load_dotenv()
 
-# 🗝️ Keys
+#  Keys
 HUBSPOT_API_KEY = os.getenv("HUBSPOT_API_KEY")
 PAGE_ID = os.getenv("PAGE_ID")
 
 
-# 🧩 HubSpot API Setup
+# HubSpot API Setup
 page_url = f"https://api.hubapi.com/cms/v3/pages/site-pages/{PAGE_ID}"
 headers = {"Authorization": f"Bearer {HUBSPOT_API_KEY}"}
 
-# 1️⃣ Fetch the page
+# Fetch the page
 response = requests.get(page_url, headers=headers)
 if response.status_code != 200:
     print(f"❌ Failed to fetch page: {response.status_code}\n{response.text}")
@@ -22,7 +22,7 @@ if response.status_code != 200:
 page_data = response.json()
 print("✅ Page fetched successfully!")
 
-# 2️⃣ Recursive function to collect all text-like fields
+# Recursive function to collect all text-like fields
 def extract_text_fields(obj, path="root", result=None):
     if result is None:
         result = {}
@@ -67,18 +67,18 @@ def extract_text_fields(obj, path="root", result=None):
     return result
 
 
-# 3️⃣ Extract all text content
+# Extract all text content
 translatable_fields = extract_text_fields(page_data)
 
-# 4️⃣ Save as JSON
+# Save as JSON
 print("\n🧾 Translatable Text JSON:")
 print(json.dumps(translatable_fields, indent=2, ensure_ascii=False))
 
-# 📍 Get the folder where the script itself is located
+# Get the folder where the script itself is located
 script_dir = os.path.dirname(os.path.abspath(__file__))
 output_path = os.path.join(script_dir, "hubspot_translatable_content.json")
 
-# 💾 Save JSON file
+# Save JSON file
 with open(output_path, "w", encoding="utf-8") as f:
     json.dump(translatable_fields, f, ensure_ascii=False, indent=2)
 

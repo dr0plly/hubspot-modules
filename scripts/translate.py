@@ -1,38 +1,32 @@
-from dotenv import load_dotenv
 import os
-load_dotenv()
 import json
 import time
 import re
 import google.generativeai as genai
+from dotenv import load_dotenv
+load_dotenv()
 
-# -------------------------
-# 🌍 Language Settings
-# -------------------------
+#  Language Settings
+
 SOURCE_LANG = "English"
 TARGET_LANG = "Thai"
 
-# -------------------------
-# 🔑 Gemini Configuration
-# -------------------------
+# Gemini Configuration
+
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel("gemini-2.5-flash")
 
-# -------------------------
-# 🗂️ File Paths
-# -------------------------
-# -------------------------
-# 🗂️ File Paths
-# -------------------------
+
+# File Paths
+
 script_dir = os.path.dirname(os.path.abspath(__file__))
 base_content_path = os.path.join(script_dir, "hubspot_translatable_content.json")
 translated_path = os.path.join(script_dir, f"hubspot_translated_{TARGET_LANG.lower()}.json")
 
 
-# -------------------------
-# 🧩 Helpers
-# -------------------------
+# Helpers
+
 def is_exact_dynamic_row_pattern(key: str) -> bool:
     """Return True for keys ending exactly like ...rows[<num>].0.rows[0].0.label"""
     return bool(re.search(r"\.rows\[\d+\]\.0\.rows\[0\]\.0\.label$", key))
@@ -40,6 +34,11 @@ def is_exact_dynamic_row_pattern(key: str) -> bool:
 def is_placeholder_text(value: str) -> bool:
     """Skip Lorem ipsum placeholder content (case-insensitive)"""
     return isinstance(value, str) and value.strip().lower().startswith("lorem ipsum")
+
+def is_content_type_key(key: str) -> bool:
+    """Return True for keys that end with '.content_type' — these should not be translated
+    but should be copied into the translated JSON so mapping is preserved."""
+    return isinstance(key, str) and key.endswith(".content_type")
 
 def backup_file(path: str) -> str:
     """Create a timestamped backup copy and return its path"""
@@ -58,9 +57,9 @@ def clean_gemini_output(text: str) -> str:
     cleaned = re.sub(r"```$", "", cleaned.strip())
     return cleaned.strip()
 
-# -------------------------
-# 🧠 Load main English content
-# -------------------------
+
+# Load main English content
+
 if not os.path.exists(base_content_path):
     print(f"❌ hubspot_translated_{TARGET_LANG.lower()}.json not found in script folder.")
     exit(1)
@@ -74,9 +73,9 @@ with open(base_content_path, "r", encoding="utf-8") as f:
 
 print(f"✅ Loaded {len(base_content)} entries from hubspot_translated_{TARGET_LANG.lower()}.json")
 
-# -------------------------
-# 🗃️ Check existing translation file
-# -------------------------
+
+# Check existing translation file
+
 if os.path.exists(translated_path):
     with open(translated_path, "r", encoding="utf-8") as f:
         try:
@@ -88,9 +87,9 @@ else:
     translated_content = {}
     print("🆕 No existing translation file found. Starting fresh...")
 
-# -------------------------
-# 🔍 Compare progress
-# -------------------------
+
+# Compare progress
+
 base_keys = list(base_content.keys())
 translated_keys = list(translated_content.keys())
 
@@ -106,9 +105,9 @@ if os.path.exists(translated_path):
     except Exception as e:
         print(f"⚠️ Could not create backup: {e}")
 
-# -------------------------
-# 🔁 Resume or start translation
-# -------------------------
+
+# Resume or start translation
+
 start_index = 0
 if translated_keys:
     # Continue from where translation left off
@@ -132,6 +131,14 @@ for i, (key, value) in enumerate(list(base_content.items())[start_index:], start
     # Skip placeholder text
     if is_placeholder_text(value):
         print(f"🚫 Skipping {key} (placeholder 'Lorem ipsum')")
+        continue
+
+    # Copy content_type keys without translating (preserve in translated JSON)
+    if is_content_type_key(key):
+        print(f"ℹ️ Copying {key} (content_type key) into translated file without translating")
+        translated_content[key] = value
+        with open(translated_path, "w", encoding="utf-8") as f:
+            json.dump(translated_content, f, ensure_ascii=False, indent=2)
         continue
 
     # Build prompt
