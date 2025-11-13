@@ -118,8 +118,12 @@ def clean_hubspot_payload(data):
 
 from datetime import datetime
 
+backup_dir = os.path.join(script_dir, "backups")
+if not os.path.exists(backup_dir):
+    os.makedirs(backup_dir, exist_ok=True)
+
 timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-backup_path = os.path.join(script_dir, f"hubspot_page_backup_{PAGE_ID}_{timestamp}.json")
+backup_path = os.path.join(backup_dir, f"hubspot_page_backup_{PAGE_ID}_{timestamp}.json")
 with open(backup_path, "w", encoding="utf-8") as bf:
     json.dump(page_data, bf, ensure_ascii=False, indent=2)
 
@@ -134,5 +138,21 @@ update_response = requests.patch(page_url, headers=headers, json=page_data_clean
 
 if update_response.status_code in (200, 204):
     print("🎉 HubSpot page updated successfully with translated content!")
+    
+    # Delete translation files after successful update
+    files_to_delete = [
+        os.path.join(script_dir, "hubspot_translatable_content.json"),
+        os.path.join(script_dir, f"hubspot_translated_{TARGET_SUFFIX}.json")
+    ]
+    
+    for file_path in files_to_delete:
+        if os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+                print(f"✅ Deleted: {os.path.basename(file_path)}")
+            except Exception as e:
+                print(f"⚠️ Failed to delete {os.path.basename(file_path)}: {e}")
+        else:
+            print(f"ℹ️ File not found: {os.path.basename(file_path)}")
 else:
     print(f"❌ Update failed ({update_response.status_code}):\n{update_response.text}")

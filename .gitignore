@@ -1,3 +1,5 @@
 **/.env
 **/hubspot_*
 **/bot-translate.py
+**/th-backup
+**/backups
