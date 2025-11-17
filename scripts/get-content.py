@@ -11,10 +11,14 @@ PAGE_ID = os.getenv("PAGE_ID")
 
 # HubSpot API Setup
 page_url = f"https://api.hubapi.com/cms/v3/pages/site-pages/{PAGE_ID}"
+# page_url = f"https://api.hubapi.com/cms/v3/blogs/posts/{PAGE_ID}"
 headers = {"Authorization": f"Bearer {HUBSPOT_API_KEY}"}
 
 # Fetch the page
 response = requests.get(page_url, headers=headers)
+print(f"Debug - URL: {page_url}")
+print(f"Debug - Status Code: {response.status_code}")
+print(f"Debug - Full Response: {response.text}")
 if response.status_code != 200:
     print(f"❌ Failed to fetch page: {response.status_code}\n{response.text}")
     exit()

@@ -36,9 +36,10 @@ print(f"✅ Using translation file: {json_path}")
 print(f"✅ Found {len(translations)} translations (suffix='{suffix}').\n")
 
 
-# 📡 Get existing HubSpot page
+# Get existing HubSpot page
 
 page_url = f"https://api.hubapi.com/cms/v3/pages/site-pages/{PAGE_ID}"
+# page_url = f"https://api.hubapi.com/cms/v3/blogs/posts/{PAGE_ID}"
 headers = {"Authorization": f"Bearer {HUBSPOT_API_KEY}", "Content-Type": "application/json"}
 
 response = requests.get(page_url, headers=headers)
@@ -136,6 +137,7 @@ page_data_cleaned = clean_hubspot_payload(json.loads(json.dumps(page_data)))
 print("🚀 Sending update request to HubSpot...")
 update_response = requests.patch(page_url, headers=headers, json=page_data_cleaned)
 
+
 if update_response.status_code in (200, 204):
     print("🎉 HubSpot page updated successfully with translated content!")
     
@@ -156,3 +158,4 @@ if update_response.status_code in (200, 204):
             print(f"ℹ️ File not found: {os.path.basename(file_path)}")
 else:
     print(f"❌ Update failed ({update_response.status_code}):\n{update_response.text}")
+    print(f"\n📋 Debug - Payload sent:\n{json.dumps(page_data_cleaned, indent=2, ensure_ascii=False)}")
