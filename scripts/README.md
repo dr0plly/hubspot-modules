@@ -38,6 +38,7 @@ Before running the scripts, make sure you have:
    ```
    HUBSPOT_API_KEY="your_hubspot_private_app_token"
    GEMINI_API_KEY="your_gemini_api_key"
+   PAGE_ID="your_hubspot_page_id" (You can use landing page or Website Page. It will not work on Blog Posts.)
    ```
 
 ## 🚀 Step-by-Step Usage Guide
@@ -54,7 +55,7 @@ This script connects to the HubSpot CMS via API and extracts **all readable text
 2. Run the command:
 
    ```
-    python your_file_path\get-content.py
+    python -u your_file_path\get-content.py
    ```
 
 3. Wait for the extraction to finish.
@@ -85,7 +86,7 @@ This script reads the extracted JSON and translates each English text block into
 
 2. Run the translation:
    ```
-   python translate.py
+   python -u your_file_path\translate.py
    ```
 
 **What the Script Does**
@@ -94,6 +95,7 @@ This script reads the extracted JSON and translates each English text block into
 - Skips:
   - Placeholder text (e.g. “Lorem ipsum…”)
   - Dynamic keys such as `.rows[10].0.rows[0].0.label`
+  - You can update the prompt in `is_content_type_key()` to add fields you **want to skip (eg: Choice, Boolean, etc.)**.
 - Saves progress automatically after each translation
 - Produces a new file containing **only translated text**
 
@@ -105,18 +107,32 @@ This script reads the extracted JSON and translates each English text block into
 
 This script takes the translated JSON and attempts to apply those translations back into the HubSpot page JSON via the HubSpot CMS API.
 
+### How to Configure
+
+1. Open the script and set your language preferences:
+
+   ```
+   language = "th"
+   ```
+
+2. Run the translation:
+   ```
+   python -u your_file_path\update-content.py
+   ```
+
 ### How it works (high level)
 
 - The script reads a JSON file in this folder (by default `hubspot_translatable_content.json`), filters for keys that end with the target language suffix (by default `_th`), strips that suffix and locates the corresponding field inside the fetched HubSpot page JSON.
 - It uses dot-path traversal (supports array indices in the form `rows[0]`) to find and replace values in the page JSON.
 - After applying replacements in memory, it removes read-only/system-managed fields and issues a `PATCH` to the HubSpot page endpoint (`/cms/v3/pages/site-pages/{PAGE_ID}`).
+- After a successfull execution a dir called backup will be created in which a backup copy will be created for the updated content.
 
 ### Before you run
 
 1. Make a manual backup of the current page JSON using `get-content.py` (recommended). Example:
 
 ```cmd
-python get-content.py
+python your_file_path\get-content.py
 ```
 
 This produces `hubspot_translatable_content.json` (or your extracted file) which you should keep as the source-of-truth backup.
@@ -133,16 +149,10 @@ When applied, the script removes `_th` and updates the `root.layoutSections.dnd_
 
 ### How to run
 
-Windows (cmd.exe):
+OS teminal/your IDE terminal:
 
 ```
-python update-content.py
-```
-
-macOS / Linux:
-
-```
-python3 update-content.py
+python -u your_file_path\script.py
 ```
 
 What the script prints:
@@ -153,7 +163,7 @@ What the script prints:
 
 ### Troubleshooting
 
-- If the script fails to fetch the page, check `PAGE_ID` and `HUBSPOT_API_KEY` and ensure the token has CMS read/write scopes.
+- If the script fails to fetch the page, check `PAGE_ID` and `HUBSPOT_API_KEY` and ensure the token has `content` scopes.
 - If PATCH requests fail, inspect the HTTP response printed by the script — common causes are invalid payload structure or missing permissions.
 - If many fields are reported as "Could not locate", the dot-path mapping may not match the live page structure; run `get-content.py` again to inspect the current page JSON structure and adjust keys if necessary.
 
