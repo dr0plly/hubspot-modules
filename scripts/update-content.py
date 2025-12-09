@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configuration
-language = "th"
+language = "thai"
 HUBSPOT_API_KEY = os.getenv("HUBSPOT_API_KEY") or os.getenv("HUBSPOT_PRIVATE_APP_TOKEN")
 PAGE_ID = os.getenv("PAGE_ID")
 
@@ -28,10 +28,12 @@ if not os.path.exists(json_path):
 with open(json_path, "r", encoding="utf-8") as f:
     data = json.load(f)
 
-# Collect translations based on the configured suffix
+# Collect translations - check if keys have suffix or are direct translations
 suffix = f"_{TARGET_SUFFIX}"
 suffix_len = len(suffix)
-translations = {k[:-suffix_len]: v for k, v in data.items() if k.endswith(suffix)}
+translations_with_suffix = {k[:-suffix_len]: v for k, v in data.items() if k.endswith(suffix)}
+translations_direct = {k: v for k, v in data.items() if not k.endswith(suffix)}
+translations = translations_with_suffix or translations_direct
 print(f"✅ Using translation file: {json_path}")
 print(f"✅ Found {len(translations)} translations (suffix='{suffix}').\n")
 
