@@ -3,5 +3,6 @@
 **/bot-translate.py
 **/backups
 **/*.json
-/holiday-page-scripts/details.txt
-/prompt.md
+**/Details.txt
+**/prompt.md
+/data
