@@ -168,31 +168,21 @@ for i, (key, value) in enumerate(list(base_content.items())[start_index:], start
 
     # Build prompt
     prompt = (
-        f"Translate the following English text to Thai. Requirements:\n"
-        "1. Use natural, professional, and easy-to-understand tone for business audience\n"
-        "2. Make it sound human and polished, aligned with HR/technology context\n"
-        "3. Maintain clarity, smooth flow, and correct technical meaning\n"
-        "4. Avoid robotic language\n"
-        "5. Output ONLY the Thai translation, nothing else\n"
-        "6. IMPORTANT: Keep all HTML tags exactly as they are in the original text\n"
-        "7. Do NOT remove, add, or modify any HTML tags (<br>, <strong>, <p>, <h1>, <h2>, <h3>, <h4>, <div>, <span>, etc.)\n"
-        "8. Translate only the text content inside and between the HTML tags\n"
-        "9. Preserve all attributes, styles, and structure of HTML tags\n\n"
+        f"Please translate the following English content into Thai in a natural, professional, and easy-to-understand tone suitable for a business audience visiting HONO’s website. Make the translation sound human, polished, and aligned with HR/technology context—maintaining clarity, smooth flow, and correct technical meaning. Avoid robotic language, and ensure it feels like content on a modern HR technology website.IMPORTANT: Keep all HTML tags exactly as they are in the original text"
         f"{value}"
     )
 
     try:
         print(f"🌐 Translating ({i+1}/{len(base_content)}): {key}")
 
-        # OpenAI ChatGPT request
+        # OpenAI ChatGPT request, 
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-5-mini",
             messages=[
                 {"role": "system", "content": "You are a professional translator specializing in translating English content to Thai with a focus on HR technology and business contexts."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.3,
-            max_tokens=2000
+            max_completion_tokens=2000
         )
 
         translated_text = ""
